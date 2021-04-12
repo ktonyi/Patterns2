@@ -1,21 +1,25 @@
 package ru.netology;
-
+import com.github.javafaker.Faker;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.filter.log.LogDetail;
 import io.restassured.http.ContentType;
 import io.restassured.specification.RequestSpecification;
-
+import java.util.Locale;
+import static com.codeborne.selenide.Selenide.open;
 import static io.restassured.RestAssured.given;
 
 public class DataGenerator {
-    static void sendForRegistration(PersonGenerator person) {
-        RequestSpecification requestSpec = new RequestSpecBuilder()
+    DataGenerator () {
+
+    }
+    private static final RequestSpecification requestSpec = new RequestSpecBuilder()
                 .setBaseUri("http://localhost")
                 .setPort(9999)
                 .setAccept(ContentType.JSON)
                 .setContentType(ContentType.JSON)
                 .log(LogDetail.ALL)
                 .build();
+    public static void sendRequest(PersonInfo person){
 
         given()
                 .spec(requestSpec) // указываем, какую спецификацию используем
@@ -24,45 +28,46 @@ public class DataGenerator {
                 .post("/api/system/users") // на какой путь, относительно BaseUri отправляем запрос
                 .then() // "тогда ожидаем"
                 .statusCode(200); // код 200 OK
+
     }
 
-    static PersonGenerator createWithoutRegistration(String locale) {
-        PersonGenerator person = new PersonGenerator(locale);
-        person.generatePersonWithValidPassword();
+
+    public static  PersonInfo ValidPerson() {
+        Faker faker = new Faker(new Locale("en"));
+        String login = faker.name().firstName();
+        String password = faker.internet().password();
+        String status = "active";
+        PersonInfo person = new PersonInfo ( login, password, status);
+        sendRequest(person);
         return person;
     }
-
-    static PersonGenerator getPersonWithInvalidLogin(String locale) {
-        PersonGenerator person = new PersonGenerator(locale);
-        person.generatePersonWithValidPassword();
-        DataGenerator.sendForRegistration(person);
-        PersonGenerator person2 = new PersonGenerator(locale);
-        person2.generatePersonWithValidPassword();
-        person2.setPassword(person.getPassword());
-        return person2;
+    public static PersonInfo inValidPerson() {
+        Faker faker = new Faker(new Locale("en"));
+        String login = faker.name().firstName();
+        String password = faker.internet().password();
+        String status = "active";
+        PersonInfo person = new PersonInfo (login, password, status);
+        sendRequest(person);
+        return new PersonInfo("Petya", password, status);
+    }
+    public static PersonInfo inValidPassword() {
+        Faker faker = new Faker(new Locale("en"));
+        String login = faker.name().firstName();
+        String password = faker.internet().password();
+        String status = "active";
+        PersonInfo person = new PersonInfo (login, password, status);
+        sendRequest(person);
+        return new PersonInfo(login, "bla", status);
+    }
+    public static PersonInfo PersonBlocked() {
+        Faker faker = new Faker(new Locale("en"));
+        String login = faker.name().firstName();
+        String password = faker.internet().password();
+        String status = "blocked";
+        PersonInfo person = new PersonInfo (login, password, status);
+        sendRequest(person);
+        return new PersonInfo(login, password, "blocked");
     }
 
-    static PersonGenerator getPersonWithInvalidPassword(String locale) {
-        PersonGenerator person = new PersonGenerator(locale);
-        person.generatePersonWithValidPassword();
-        DataGenerator.sendForRegistration(person);
-        PersonGenerator person2 = new PersonGenerator(locale);
-        person2.generatePersonWithValidPassword();
-        person2.setLogin(person.getLogin());
-        return person2;
-    }
 
-    static PersonGenerator getPersonWithBlockedStatus(String locale) {
-        PersonGenerator person = new PersonGenerator(locale);
-        person.generatePersonWithBlockedStatus();
-        DataGenerator.sendForRegistration(person);
-        return person;
-    }
-
-    static PersonGenerator getValidPerson(String locale) {
-        PersonGenerator person = new PersonGenerator(locale);
-        person.generatePersonWithValidPassword();
-        DataGenerator.sendForRegistration(person);
-        return person;
-    }
 }
